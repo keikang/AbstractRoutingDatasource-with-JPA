@@ -2,27 +2,32 @@ package com.example.abstractroutingdatasource.config;
 
 import com.example.abstractroutingdatasource.ClientDataSourceRouter;
 import com.example.abstractroutingdatasource.ClientDatasource;
+import com.example.abstractroutingdatasource.entity.Member;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@NoArgsConstructor
 @EnableJpaRepositories(
-        basePackages = ""
+        basePackages = "com.example.abstractroutingdatasource.repository"
+        , transactionManagerRef = "transcationManager"
+        , entityManagerFactoryRef = "entityManager"
 )
+@EnableTransactionManagement
 public class RoutingTestConfiguration {
 
 /*    @Bean
@@ -34,7 +39,7 @@ public class RoutingTestConfiguration {
         System.out.println("RoutingTestConfiguration clientDatasource 생성자");
         return new ClientDatasource(getclientDatasSource());
     }
-    @Bean("RoutingDataSource")
+/*    @Bean("RoutingDataSource")
     public DataSource getclientDatasSource() {
         Map<Object, Object> targetDataSources = new HashMap<>();
         DataSource agensDatasource = agensDatasource();
@@ -47,8 +52,14 @@ public class RoutingTestConfiguration {
         clientDataSourceRouter.setTargetDataSources(targetDataSources);
         clientDataSourceRouter.setDefaultTargetDataSource(agensDatasource);
         return clientDataSourceRouter;
+    }*/
+    @Bean
+    @Primary
+    public DataSource getclientDatasSource() {
+        ClientDataSourceRouter clientDataSourceRouter = new ClientDataSourceRouter();
+        clientDataSourceRouter.initDatasource(agensDatasource(), ageDatasource());
+        return clientDataSourceRouter;
     }
-
     @Bean
     @ConfigurationProperties("datasource.agens")
     public DataSourceProperties agensDatasourProperties(){
@@ -77,7 +88,7 @@ public class RoutingTestConfiguration {
                 .build();
     }
 
-    @Bean("routingLazyDataSource")
+/*    @Bean("routingLazyDataSource")
     public DataSource routingLazyDataSource(@Qualifier("RoutingDataSource") DataSource dataSource) {
         return new LazyConnectionDataSourceProxy(dataSource);
     }
@@ -87,15 +98,19 @@ public class RoutingTestConfiguration {
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
         transactionManager.setDataSource(dataSource);
         return transactionManager;
-    }
+    }*/
 /*    @Bean(name = "entityManager")
     public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(EntityManagerFactoryBuilder builder) {
-        return builder.dataSource(clientDatasouSource()).packages(Board.class).build();
+        return builder.dataSource(getclientDatasSource()).packages(Member.class).build();
     }*/
+    @Bean(name = "entityManager")
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(EntityManagerFactoryBuilder builder) {
+        return builder.dataSource(getclientDatasSource()).packages(Member.class).build();
+    }
 
-/*    @Bean(name = "transcationManager")
+    @Bean(name = "transcationManager")
     public JpaTransactionManager transactionManager(
             @Autowired @Qualifier("entityManager") LocalContainerEntityManagerFactoryBean entityManagerFactoryBean) {
         return new JpaTransactionManager(entityManagerFactoryBean.getObject());
-    }*/
+    }
 }
