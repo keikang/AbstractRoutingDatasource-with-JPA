@@ -5,7 +5,7 @@ import com.example.abstractroutingdatasource.ClientDatabaseContextHolder;
 import com.example.abstractroutingdatasource.ClientDatasource;
 import com.example.abstractroutingdatasource.config.ClientDatabase;
 import com.example.abstractroutingdatasource.entity.Member;
-import com.example.abstractroutingdatasource.repository.MemberRepository;
+import com.example.abstractroutingdatasource.repository.agens.MemberAgensRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +20,10 @@ public class MainController {
 
     private final BoardService boardService;
 
-    private final MemberRepository memberRepository;
+    private final MemberAgensRepository memberAgensRepository;
+
+    //private final MemberMysqlRepository memberMysqlRepository;
+
     @GetMapping("/datasource/{dbName}")
     public ResponseEntity<?> getData(@PathVariable String dbName) throws SQLException {
         Object result = null;
@@ -43,20 +46,21 @@ public class MainController {
     @PostMapping("/jpa/{dbName}")
     public ResponseEntity<?> creatMember(@PathVariable String dbName) throws SQLException {
 
-        if("agens".equals(dbName)){
-            //System.out.println("MainController getData dbName : "+dbName);
-            ClientDatabaseContextHolder.set(ClientDatabase.AGENS);
-
-        }else{
-            ClientDatabaseContextHolder.set(ClientDatabase.MYSQL);
-        }
-
         Member member = new Member();
         member.setId("bitnine");
         member.setUserName("비트나인");
         member.setAddr("서울특별시 강남구 테헤란로 516 정헌빌딩 4층");
 
-        return ResponseEntity.ok(memberRepository.save(member));
+        if("agens".equals(dbName)){
+            //System.out.println("MainController getData dbName : "+dbName);
+            ClientDatabaseContextHolder.set(ClientDatabase.AGENS);
 
+
+        }/*else{
+            ClientDatabaseContextHolder.set(ClientDatabase.MYSQL);
+            return ResponseEntity.ok(memberMysqlRepository.save(member));
+        }*/
+
+        return ResponseEntity.ok(memberAgensRepository.save(member));
     }
 }

@@ -4,12 +4,14 @@ import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
+
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Getter
 @Setter
-@Entity(name = "tb_member")
+@Entity
+@Table(name = "tb_member")
 public class Member {
 
     @Id
