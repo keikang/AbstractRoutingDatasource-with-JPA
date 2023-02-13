@@ -1,7 +1,6 @@
 package com.example.abstractroutingdatasource.controller;
 
 import com.example.abstractroutingdatasource.BoardService;
-import com.example.abstractroutingdatasource.ClientDatabaseContextHolder;
 import com.example.abstractroutingdatasource.ClientDatasource;
 import com.example.abstractroutingdatasource.config.ClientDatabase;
 import com.example.abstractroutingdatasource.entity.Member;
@@ -30,14 +29,11 @@ public class MainController {
         Object result = null;
         DataSource dataSource = null;
         if("agens".equals(dbName)){
-            //System.out.println("MainController getData dbName : "+dbName);
             dataSource = ClientDatasource.getDatasource(ClientDatabase.AGENS);
-            //System.out.println("MainController getData dataSource : "+dataSource.getConnection().getClientInfo().keys());
             result = boardService.getData(dataSource);
 
         }else{
             dataSource = ClientDatasource.getDatasource(ClientDatabase.MYSQL);
-            //System.out.println("MainController getData dataSource : "+dataSource.getConnection().toString());
             result = boardService.getData(dataSource);
         }
 
@@ -54,14 +50,12 @@ public class MainController {
 
         Member result = null;
         if("agens".equals(dbName)){
-            System.out.println("MainController creatMember agens  : "+dbName);
-            //ClientDatabaseContextHolder.set(ClientDatabase.AGENS);
+            //System.out.println("MainController creatMember agens  : "+dbName);
             result = memberAgensRepository.save(member);
             return ResponseEntity.ok(memberAgensRepository.findAll());
 
         }else{
-            System.out.println("MainController creatMember mysql : "+dbName);
-            //ClientDatabaseContextHolder.set(ClientDatabase.MYSQL);
+            //System.out.println("MainController creatMember mysql : "+dbName);
             result = memberMysqlRepository.save(member);
             return ResponseEntity.ok(memberMysqlRepository.findAll());
         }
