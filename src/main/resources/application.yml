@@ -14,7 +14,8 @@ datasource:
 
 spring:
   jpa:
-    database: mysql
+    #database: mysql
+    database: postgresql
     hibernate:
       ddl-auto: update
     generate-ddl: true
