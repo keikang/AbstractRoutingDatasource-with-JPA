@@ -3,7 +3,6 @@ package com.example.abstractroutingdatasource.config;
 import com.example.abstractroutingdatasource.ClientDataSourceRouter;
 import com.example.abstractroutingdatasource.ClientDatasource;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;

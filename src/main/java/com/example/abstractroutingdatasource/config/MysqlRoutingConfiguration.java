@@ -1,13 +1,7 @@
 package com.example.abstractroutingdatasource.config;
 
-import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateSettings;
-import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +11,6 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
 import java.util.Map;
 
 @Configuration
@@ -27,27 +20,6 @@ import java.util.Map;
         , transactionManagerRef = "mysqlTransactionManager"
 )
 public class MysqlRoutingConfiguration extends RoutingConfiguration{
-
-
-/*    @Autowired(required = false)
-    JpaProperties jpaProperties;
-
-    @Autowired(required = false)
-    HibernateProperties hibernateProperties;
-    @Bean
-    @ConfigurationProperties("datasource.mysql")
-    public DataSourceProperties mysqlDatasourProperties(){
-        return new DataSourceProperties();
-    }
-
-
-    @Bean
-    public DataSource mysqlDatasource() {
-        return mysqlDatasourProperties()
-                .initializeDataSourceBuilder()
-                .type(HikariDataSource.class)
-                .build();
-    }*/
 
     @Bean(name = "mysqlEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean mysqlEntityManagerFactory(EntityManagerFactoryBuilder builder){
@@ -66,6 +38,5 @@ public class MysqlRoutingConfiguration extends RoutingConfiguration{
         transactionManager.setEntityManagerFactory(entityManagerFactory);
         return transactionManager;
     }
-
 
 }
