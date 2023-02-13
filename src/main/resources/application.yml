@@ -19,3 +19,6 @@ spring:
       ddl-auto: update
     generate-ddl: true
     show-sql: true
+
+server:
+    port: 10001
