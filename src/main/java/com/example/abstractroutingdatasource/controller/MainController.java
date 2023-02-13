@@ -6,6 +6,7 @@ import com.example.abstractroutingdatasource.ClientDatasource;
 import com.example.abstractroutingdatasource.config.ClientDatabase;
 import com.example.abstractroutingdatasource.entity.Member;
 import com.example.abstractroutingdatasource.repository.agens.MemberAgensRepository;
+import com.example.abstractroutingdatasource.repository.mysql.MemberMysqlRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class MainController {
 
     private final MemberAgensRepository memberAgensRepository;
 
-    //private final MemberMysqlRepository memberMysqlRepository;
+    private final MemberMysqlRepository memberMysqlRepository;
 
     @GetMapping("/datasource/{dbName}")
     public ResponseEntity<?> getData(@PathVariable String dbName) throws SQLException {
@@ -47,20 +48,23 @@ public class MainController {
     public ResponseEntity<?> creatMember(@PathVariable String dbName) throws SQLException {
 
         Member member = new Member();
-        member.setId("bitnine");
-        member.setUserName("비트나인");
+        member.setId("bitnine1");
+        member.setUserName("비트나인1");
         member.setAddr("서울특별시 강남구 테헤란로 516 정헌빌딩 4층");
 
+        Member result = null;
         if("agens".equals(dbName)){
-            //System.out.println("MainController getData dbName : "+dbName);
-            ClientDatabaseContextHolder.set(ClientDatabase.AGENS);
+            System.out.println("MainController creatMember agens  : "+dbName);
+            //ClientDatabaseContextHolder.set(ClientDatabase.AGENS);
+            result = memberAgensRepository.save(member);
+            return ResponseEntity.ok(memberAgensRepository.findAll());
 
+        }else{
+            System.out.println("MainController creatMember mysql : "+dbName);
+            //ClientDatabaseContextHolder.set(ClientDatabase.MYSQL);
+            result = memberMysqlRepository.save(member);
+            return ResponseEntity.ok(memberMysqlRepository.findAll());
+        }
 
-        }/*else{
-            ClientDatabaseContextHolder.set(ClientDatabase.MYSQL);
-            return ResponseEntity.ok(memberMysqlRepository.save(member));
-        }*/
-
-        return ResponseEntity.ok(memberAgensRepository.save(member));
     }
 }

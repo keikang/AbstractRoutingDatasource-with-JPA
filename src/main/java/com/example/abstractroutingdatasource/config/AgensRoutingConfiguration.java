@@ -1,68 +1,42 @@
 package com.example.abstractroutingdatasource.config;
 
-import com.example.abstractroutingdatasource.ClientDataSourceRouter;
-import com.example.abstractroutingdatasource.ClientDatasource;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateSettings;
+import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableJpaRepositories(
         basePackages = "com.example.abstractroutingdatasource.repository.agens"
-        , transactionManagerRef = "transcationManager"
-        , entityManagerFactoryRef = "entityManager"
+        , entityManagerFactoryRef = "agensEntityManagerFactory"
+        , transactionManagerRef = "agensTransactionManager"
 )
-public class AgensRoutingConfiguration {
+public class AgensRoutingConfiguration extends RoutingConfiguration{
 
-/*    @Bean
-    public ClientService clientService(){
-        return new ClientService(clientDatasouSource());
-    }*/
-    @Bean
-    public ClientDatasource clientDatasource(){
-        System.out.println("RoutingTestConfiguration clientDatasource 생성자");
-        return new ClientDatasource(getclientDatasSource());
-    }
-/*    @Bean("RoutingDataSource")
-    public DataSource getclientDatasSource() {
-        Map<Object, Object> targetDataSources = new HashMap<>();
-        DataSource agensDatasource = agensDatasource();
-        DataSource mysqlDatasource = ageDatasource();
+/*    @Autowired(required = false)
+    JpaProperties jpaProperties;
 
-        targetDataSources.put(ClientDatabase.AGENS, agensDatasource);
-        targetDataSources.put(ClientDatabase.MYSQL, mysqlDatasource);
-
-        ClientDataSourceRouter clientDataSourceRouter = new ClientDataSourceRouter();
-        clientDataSourceRouter.setTargetDataSources(targetDataSources);
-        clientDataSourceRouter.setDefaultTargetDataSource(agensDatasource);
-        return clientDataSourceRouter;
-    }*/
-    @Bean
-    @Primary
-    public DataSource getclientDatasSource() {
-        ClientDataSourceRouter clientDataSourceRouter = new ClientDataSourceRouter();
-        clientDataSourceRouter.initDatasource(agensDatasource(), mysqlDatasource());
-        return clientDataSourceRouter;
-    }
+    @Autowired(required = false)
+    HibernateProperties hibernateProperties;
     @Bean
     @ConfigurationProperties("datasource.agens")
     public DataSourceProperties agensDatasourProperties(){
-        return new DataSourceProperties();
-    }
-
-    @Bean
-    @ConfigurationProperties("datasource.mysql")
-    public DataSourceProperties mysqlDatasourProperties(){
         return new DataSourceProperties();
     }
 
@@ -72,20 +46,35 @@ public class AgensRoutingConfiguration {
                 .initializeDataSourceBuilder()
                 .type(HikariDataSource.class)
                 .build();
-    }
+    }*/
 
-    @Bean
-    public DataSource mysqlDatasource() {
-        return mysqlDatasourProperties()
-                .initializeDataSourceBuilder()
-                .type(HikariDataSource.class)
+    @Primary
+    @Bean(name = "agensEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean agensEntityManagerFactory(EntityManagerFactoryBuilder builder){
+        Map<String, Object> properties = hibernateProperties.determineHibernateProperties(jpaProperties.getProperties(), new HibernateSettings());
+        return builder
+                .dataSource(agensDatasource())
+                .packages("com.example.abstractroutingdatasource.entity")
+                .persistenceUnit("agensEntityManager")
+                .properties(properties)
                 .build();
     }
-    @Bean(name = "entityManager")
+
+    @Bean(name = "agensTransactionManager")
+    @Primary
+    public PlatformTransactionManager agensTransactionManager(@Qualifier(value = "agensEntityManagerFactory") EntityManagerFactory entityManagerFactory){
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(entityManagerFactory);
+        return transactionManager;
+    }
+
+/*    @Primary
+    @Bean(name = "agensEntityManager")
     public LocalContainerEntityManagerFactoryBean agenseEntityManagerFactoryBean() {
+        System.out.println("AgensRoutingConfiguration agenseEntityManagerFactoryBean 메소드 시작");
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(agensDatasource());
-        em.setPackagesToScan("com.example.abstractroutingdatasource.repository.agens");
+        em.setPackagesToScan("com.example.abstractroutingdatasource.entity");
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
@@ -93,35 +82,18 @@ public class AgensRoutingConfiguration {
         properties.put("hibernate.hbm2ddl.auto", "update");
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         em.setJpaPropertyMap(properties);
+        System.out.println("AgensRoutingConfiguration agenseEntityManagerFactoryBean 메소드 끝");
         return em;
     }
-/*
-    @Bean(name = "entityManager")
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(EntityManagerFactoryBuilder builder) {
-        return builder.dataSource(getclientDatasSource()).packages(Member.class).build();
-    }*/
 
-    @Bean(name = "transcationManager")
-    public JpaTransactionManager agenseTransactionManager() {
+    @Primary
+    @Bean(name = "agensTranscationManager")
+    public JpaTransactionManager agenseTransactionManager(@Qualifier(value = "agensEntityManager") EntityManagerFactory entityManagerFactory) {
+        System.out.println("AgensRoutingConfiguration agenseTransactionManager 메소드 시작");
         JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(agenseEntityManagerFactoryBean().getObject());
+        transactionManager.setEntityManagerFactory(entityManagerFactory);
+        System.out.println("AgensRoutingConfiguration agenseTransactionManager 메소드 끝");
         return transactionManager;
-    }
-
-/*    @Bean("routingLazyDataSource")
-    public DataSource routingLazyDataSource(@Qualifier("RoutingDataSource") DataSource dataSource) {
-        return new LazyConnectionDataSourceProxy(dataSource);
-    }
-
-    @Bean(name = "transactionManager")
-    public PlatformTransactionManager transactionManager(@Qualifier("routingLazyDataSource") DataSource dataSource) {
-        DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
-        transactionManager.setDataSource(dataSource);
-        return transactionManager;
-    }*/
-/*    @Bean(name = "entityManager")
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(EntityManagerFactoryBuilder builder) {
-        return builder.dataSource(getclientDatasSource()).packages(Member.class).build();
     }*/
 
 }

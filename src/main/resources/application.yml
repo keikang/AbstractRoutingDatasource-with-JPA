@@ -20,3 +20,8 @@ spring:
       ddl-auto: update
     generate-ddl: true
     show-sql: true
+  main:
+    allow-bean-definition-overriding: true
+
+server:
+  port: 10001
